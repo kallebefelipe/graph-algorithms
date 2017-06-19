@@ -1,0 +1,5 @@
+4
+Theta 1
+Alfa 0 2
+Gamma 3 0
+Beta 0
