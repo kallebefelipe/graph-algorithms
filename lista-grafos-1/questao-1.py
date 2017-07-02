@@ -14,35 +14,31 @@ def gerar_grafo(data):
         linha = linha.split(' ')
 
         sucessores = [pos-1]
-        for each in linha:
-            if each.isdigit() is False:
-                nomes.append(each)
-            else:
-                sucessores.append(int(each))
+        nomes.append(linha[0])
+        for each in linha[1:]:
+            sucessores.append(int(each))
         grafo.append(sucessores)
     return grafo, nomes, int(data[0])
 
 
-def sucessores(no, grafo, nomes):
-    if no in nomes:
-        print('Sucessores de '+no+': ', end='')
-        for each in grafo[nomes.index(no)][1:]:
-            print(nomes[each]+', ', end='')
-        print()
-    else:
-        print('No nao encontrado')
+def sucessores(v, grafo):
+    lista_vizinhos = []
+    for each in grafo[v][1:]:
+        lista_vizinhos.append(each)
+    return v, lista_vizinhos
 
 
-def nome_no(num, nomes):
-    if num < len(nomes):
-        return nomes[num]
-    else:
-        print('Tamanho maior do que grafo')
+def existe_arco(grafo, v, y):
+    for vizinho in grafo[v]:
+        if vizinho == y:
+            return True, v, y
+    return False, v, y
 
 
-def busca_ciclo(grafo):
-    for no in grafo:
-        pass
+def nome_no(v, nomes):
+    if v < len(nomes):
+        return nomes[v], v
+    return '', ''
 
 
 def isCyclicUtil(v, visited, recStack, graph):
@@ -63,27 +59,22 @@ def isCyclicUtil(v, visited, recStack, graph):
 def isCyclic(V, graph):
     visited = [False] * V
     recStack = [False] * V
-    print('Granfo contem ciclo: ', end='')
     for node in range(V):
         if visited[node] is False:
             if isCyclicUtil(node, visited, recStack, graph) is True:
-                print('sim')
                 return True
-    print('nao')
     return False
 
 
-def is_paralelo(grafo):
-    print('Grafo paralelo: ', end='')
+def has_parallel_arcs(grafo):
     for no in grafo:
         lista = []
         for v in no:
             if v not in lista:
                 lista.append(v)
             else:
-                print('Sim')
-                return None
-    print('Nao')
+                return True
+    return False
 
 
 def buscar_no(v, visited, recStack, graph, proximo):
@@ -99,72 +90,87 @@ def buscar_no(v, visited, recStack, graph, proximo):
     return False
 
 
-def fortemente_conectado(V, graph):
-    print('Grafo fracamente conectado: ', end='')
-    for node in range(V):
-        visited = [False] * V
-        recStack = [False] * V
-        for proximo in range(node+1, V):
-            if visited[node] is False:
-                if buscar_no(node, visited, recStack, graph, proximo) is False:
-                    return False
+# def fortemente_conectado(V, graph):
+#     print('Grafo fracamente conectado: ', end='')
+#     for node in range(V):
+#         visited = [False] * V
+#         recStack = [False] * V
+#         for proximo in range(node+1, V):
+#             if visited[node] is False:
+#                 if buscar_no(node, visited, recStack, graph, proximo) is False:
+#                     return False
 
-    for node in range(V-1, 0, -1):
-        visited = [False] * V
-        recStack = [False] * V
-        for proximo in range(node-1, -1, -1):
-            if visited[node] is False:
-                if buscar_no(node, visited, recStack, graph, proximo) is False:
-                    print('sim')
-                    return False
-    print('nao')
-    return True
+#     for node in range(V-1, 0, -1):
+#         visited = [False] * V
+#         recStack = [False] * V
+#         for proximo in range(node-1, -1, -1):
+#             if visited[node] is False:
+#                 if buscar_no(node, visited, recStack, graph, proximo) is False:
+#                     print('sim')
+#                     return False
+#     print('nao')
+#     return True
 
 
 def tranposto(grafo, V):
-    grafo_transposto = [None] * V
+    grafo_transposto = [None] * len(grafo)
 
     for no in grafo:
-        for vizinho in no[1:]:
+        for vizinho in no:
             if grafo_transposto[vizinho] is None:
-                grafo_transposto[vizinho] = [vizinho]
+                grafo_transposto[vizinho] = []
             grafo_transposto[vizinho].append(no[0])
     return grafo_transposto
 
 
-group = 1
+def componentes(V, grafo):
+    rotulo = []
+    for count, each in enumerate(grafo):
+        rotulo.append(count)
 
-
-def percorrer(v, visited, graph, groups):
-    global group
-    visited[v] = True
-    for neighbour in graph[v]:
-        if groups[v] != 0:
-            groups[neighbour] = groups[v]
-        elif groups[neighbour]:
-            groups[v] = groups[neighbour]
-        else:
-            group += 1
-            groups[v] = group
-
-        if visited[neighbour] is False:
-            if percorrer(neighbour, visited, graph, groups) is True:
-                return True
-
-    return False
-
-
-def componentes(V, graph):
-    visited = [False] * V
-    groups = [0] * V
-    groups[0] = 1
-    for node in range(V):
-        if visited[node] is False:
-            percorrer(node, visited, graph, groups)
+    for vertice in grafo:
+        for arco in vertice[1:]:
+            alpha = rotulo[vertice[0]]
+            beta = rotulo[arco]
+            if alpha != beta:
+                for count, x in enumerate(rotulo):
+                    if x == beta:
+                        if beta < alpha:
+                            rotulo[x] = beta
+                            rotulo[vertice[0]] = beta
+                        else:
+                            rotulo[x] = alpha
+    componente = []
+    for each in rotulo:
+        if each not in componente:
+            componente.append(each)
+    return len(componente)
 
 
 data = leitura('data/entrada1.txt')
 grafo, nomes, V = gerar_grafo(data)
-# fortemente = fortemente_conectado(V, grafo)
-# tranposto = tranposto(grafo, V)
-print(componentes(V, grafo))
+
+v, sucessores = sucessores(0, grafo)
+print('Os sucessores de '+nomes[v]+': '+str(sucessores)+'\n')
+
+existe, x, y = existe_arco(grafo, 0, 1)
+print('Existe arco entre '+nomes[x]+' e '+nomes[y]+': '+str(existe)+'\n')
+
+nome, x = nome_no(0, nomes)
+print('O nome do no '+str(x)+': '+str(nome)+'\n')
+
+iscyclic = isCyclic(V, grafo)
+print('Existe ciclo no grafo: '+str(iscyclic)+'\n')
+
+arco_paralelo = has_parallel_arcs(grafo)
+print('Existe arco paralelo: '+str(arco_paralelo)+'\n')
+# fracamente
+
+transposto = tranposto(grafo, V)
+print('Grafo transposto:')
+for each in transposto:
+    print(each)
+print()
+
+qt_componente = componentes(V, grafo)
+print('Neste grafo existe '+str(qt_componente)+' componentes')
