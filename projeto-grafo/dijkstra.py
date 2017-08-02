@@ -46,32 +46,18 @@ def dijsktra(graph, initial):
     return visited, path
 
 
-graph = Graph()
-graph.add_node(1)
-graph.add_node(2)
-graph.add_node(3)
-graph.add_node(4)
-graph.add_node(5)
-graph.add_node(6)
-graph.add_edge(1, 6, 8)
-graph.add_edge(6, 1, 8)
-graph.add_edge(1, 3, 13)
-graph.add_edge(3, 1, 13)
-graph.add_edge(1, 5, 16)
-graph.add_edge(5, 1, 16)
-graph.add_edge(2, 6, 10)
-graph.add_edge(6, 2, 10)
-graph.add_edge(2, 4, 6)
-graph.add_edge(4, 2, 6)
-graph.add_edge(3, 4, 14)
-graph.add_edge(4, 3, 14)
-graph.add_edge(3, 6, 11)
-graph.add_edge(6, 3, 11)
-graph.add_edge(4, 6, 17)
-graph.add_edge(6, 4, 17)
-graph.add_edge(5, 4, 5)
-graph.add_edge(4, 5, 5)
-graph.add_edge(5, 6, 7)
-graph.add_edge(6, 5, 7)
-import ipdb; ipdb.set_trace()
-visited, path = dijsktra(graph, 1)
+def gerar_menor_caminho(grafo_entrada, labels, no_origem, no_destino):
+    graph = Graph()
+    lista_nos = []
+    for x, y in grafo_entrada:
+        if x not in lista_nos:
+            lista_nos.append(int(x))
+            graph.add_node(int(x))
+        if y not in lista_nos:
+            lista_nos.append(int(y))
+            graph.add_node(int(y))
+        graph.add_edge(x, y, labels[(x, y)])
+        graph.add_edge(y, x, labels[(x, y)])
+
+    import ipdb; ipdb.set_trace()
+    visited, path = dijsktra(graph, int(no_origem))

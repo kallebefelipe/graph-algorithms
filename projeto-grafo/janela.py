@@ -1,6 +1,7 @@
 from tkinter import *
 import networkx as nx
 import matplotlib.pyplot as plt
+from dijkstra import gerar_menor_caminho
 
 
 class Application:
@@ -25,79 +26,78 @@ class Application:
         self.titulo = Label(self.primeiroContainer, text="GPS")
         self.titulo["font"] = ("Arial", "10", "bold")
         self.titulo.pack()
-        self.nomeLabel = Label(self.segundoContainer,text="Origem", font=self.fontePadrao)
-        self.nomeLabel.pack(side=LEFT)
+        self.origemLabel = Label(self.segundoContainer,text="Origem", font=self.fontePadrao)
+        self.origemLabel.pack(side=LEFT)
 
-        self.nome = Entry(self.segundoContainer)
-        self.nome["width"] = 30
-        self.nome["font"] = self.fontePadrao
-        self.nome.pack(side=LEFT)
+        self.origem = Entry(self.segundoContainer)
+        self.origem["width"] = 30
+        self.origem["font"] = self.fontePadrao
+        self.origem.pack(side=LEFT)
 
-        self.senhaLabel = Label(self.terceiroContainer, text="Destino", font=self.fontePadrao)
-        self.senhaLabel.pack(side=LEFT)
+        self.destinoLabel = Label(self.terceiroContainer, text="Destino", font=self.fontePadrao)
+        self.destinoLabel.pack(side=LEFT)
 
-        self.senha = Entry(self.terceiroContainer)
-        self.senha["width"] = 30
-        self.senha["font"] = self.fontePadrao
-        self.senha.pack(side=LEFT)
+        self.destino = Entry(self.terceiroContainer)
+        self.destino["width"] = 30
+        self.destino["font"] = self.fontePadrao
+        self.destino.pack(side=LEFT)
 
-        self.autenticar = Button(self.quartoContainer)
-        self.autenticar["text"] = "Gerar caminho"
-        self.autenticar["font"] = ("Calibri", "8")
-        self.autenticar["width"] = 12
-        self.autenticar["command"] = self.verificaSenha
-        self.autenticar.pack()
+        self.gera_caminho = Button(self.quartoContainer)
+        self.gera_caminho["text"] = "Gerar caminho"
+        self.gera_caminho["font"] = ("Calibri", "8")
+        self.gera_caminho["width"] = 12
+        self.gera_caminho["command"] = self.menor_caminho
+        self.gera_caminho.pack()
 
         self.mensagem = Label(self.quartoContainer, text="", font=self.fontePadrao)
         self.mensagem.pack()
-        graph = [
-            (20, 21), (21, 22), (22, 23), (23, 24), (24, 25), (25, 20),
-            (25, 21), (23, 20), (24, 22), (21, 24), (20, 21)
+        self.graph = [
+            (1, 6), (1, 3), (1, 5), (2, 6), (2, 4),
+            (3, 4), (3, 6), (4, 6), (5, 4), (5, 6)
         ]
+        self.edge_labels = {(1, 6): 8, (1, 3): 13, (1, 5): 16, (2, 6): 10, (2, 4): 6,
+                            (3, 4): 14, (3, 6): 11, (4, 6): 17, (5, 4): 5, (5, 6): 7}
 
-        self.gerar_grafo(graph)
+        self.gerar_grafo(self.graph)
 
-    #Método verificar senha
-    def verificaSenha(self):
-        usuario = self.nome.get()
-        senha = self.senha.get()
-        graph = [
-            (2, 21), (21, 22), (22, 23), (23, 24), (24, 25), (25, 20)
-        ]
-        self.gerar_grafo(graph)
-        if usuario == "usuariodevmedia" and senha == "dev":
-            self.mensagem["text"] = "Autenticado"
-        else:
-            self.mensagem["text"] = "Erro na autenticação"
+    def menor_caminho(self):
+        no_origem = self.origem.get()
+        no_destino = self.destino.get()
+        # try:
+        self.graph, self.edge_labels = gerar_menor_caminho(self.graph,
+                                                           self.edge_labels,
+                                                           no_origem,
+                                                           no_destino)
+        self.gerar_grafo(self.graph)
+        self.mensagem["text"] = "Caminho gerado !"
+        # except:
+        #     self.mensagem["text"] = "Informe enderenços válidos !"
 
     def gerar_grafo(self, graph):
         plt.close()
         G = nx.DiGraph()
 
-        # add edges
         G.add_edges_from(graph)
 
-        # graph_pos = nx.spring_layout(G)
-        graph_pos = nx.spectral_layout(G)
+        graph_pos = nx.spring_layout(G)
+        # graph_pos = nx.spectral_layout(G)
 
-        # draw nodes, edges and labels
         nx.draw_networkx_nodes(G, graph_pos, node_size=1000, node_color='blue',
                                alpha=0.3)
-        # we can now added edge thickness and edge color
-        nx.draw_networkx_edges(G, graph_pos, width=2, alpha=0.3, edge_color='green')
-        nx.draw_networkx_labels(G, graph_pos, font_size=12, font_family='sans-serif')
+        nx.draw_networkx_edges(G, graph_pos, width=2, alpha=0.3,
+                               edge_color='Grey')
+        nx.draw_networkx_labels(G, graph_pos, font_size=12,
+                                font_family='sans-serif')
 
         labels = range(len(graph))
-        # [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
 
-        edge_labels = dict(zip(graph, labels))
-        # {(23, 20): 7, (22, 23): 2, (20, 21): 10, (24, 25): 4, (21, 22): 1, (25, 20): 5, (24, 22): 8, (25, 21): 6, (23, 24): 3, (21, 24): 9}
-
-        nx.draw_networkx_edge_labels(G, graph_pos, edge_labels=edge_labels)
-        # show graph
-
+        try:
+            nx.draw_networkx_edge_labels(G, graph_pos,
+                                         edge_labels=self.edge_labels)
+        except:
+            edge_labels = dict(zip(graph, labels))
+            nx.draw_networkx_edge_labels(G, graph_pos, edge_labels=edge_labels)
         plt.show()
-        plt.get_tk_widget().pack(side=master.TOP, fill=master.BOTH, expand=True)
 
 
 root = Tk()
