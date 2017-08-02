@@ -19,6 +19,7 @@ class Graph:
 def dijsktra(graph, initial):
     visited = {initial: 0}
     path = {}
+    list_path = []
 
     nodes = set(graph.nodes)
 
@@ -42,8 +43,64 @@ def dijsktra(graph, initial):
             if edge not in visited or weight < visited[edge]:
                 visited[edge] = weight
                 path[edge] = min_node
+                list_path.append((edge, min_node))
 
-    return visited, path
+    return visited, list_path
+
+
+def gerar_caminho(path, no_origem, no_destino, labels):
+    encontrado = False
+    inicio = True
+    caminho = []
+    novo_labels = {}
+    while encontrado is not True:
+        for x, y in path:
+            if x == no_destino and inicio:
+                proximo = y
+                inicio = False
+                caminho.append((x, y))
+                if (x, y) in labels:
+                    novo_labels[(x, y)] = labels[(x, y)]
+                elif (y, x) in labels:
+                    novo_labels[(y, x)] = labels[(y, x)]
+                if y == no_origem:
+                    encontrado = True
+
+                break
+            elif y == no_destino and inicio:
+                proximo = x
+                inicio = False
+                caminho.append((x, y))
+                if (x, y) in labels:
+                    novo_labels[(x, y)] = labels[(x, y)]
+                elif (y, x) in labels:
+                    novo_labels[(y, x)] = labels[(y, x)]
+                if x == no_origem:
+                    encontrado = True
+                break
+            elif inicio is False:
+                if x == proximo:
+                    proximo = y
+                    caminho.append((x, y))
+                    if (x, y) in labels:
+                        novo_labels[(x, y)] = labels[(x, y)]
+                    elif (y, x) in labels:
+                        novo_labels[(y, x)] = labels[(y, x)]
+                    if y == no_origem:
+                        encontrado = True
+                    break
+
+                elif y == proximo:
+                    proximo = x
+                    caminho.append((x, y))
+                    if (x, y) in labels:
+                        novo_labels[(x, y)] = labels[(x, y)]
+                    elif (y, x) in labels:
+                        novo_labels[(y, x)] = labels[(y, x)]
+                    if x == no_origem:
+                        encontrado = True
+                    break
+    return caminho, novo_labels
 
 
 def gerar_menor_caminho(grafo_entrada, labels, no_origem, no_destino):
@@ -59,5 +116,6 @@ def gerar_menor_caminho(grafo_entrada, labels, no_origem, no_destino):
         graph.add_edge(x, y, labels[(x, y)])
         graph.add_edge(y, x, labels[(x, y)])
 
-    import ipdb; ipdb.set_trace()
     visited, path = dijsktra(graph, int(no_origem))
+    caminho, novo_labels = gerar_caminho(path, int(no_origem), int(no_destino), labels)
+    return caminho, novo_labels
