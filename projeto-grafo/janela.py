@@ -57,6 +57,7 @@ class Application:
         ]
         self.edge_labels = {(1, 6): 8, (1, 3): 13, (1, 5): 16, (2, 6): 10, (2, 4): 6,
                             (3, 4): 14, (3, 6): 11, (4, 6): 17, (5, 4): 5, (5, 6): 7}
+        self.restante_labels = None
 
         self.gerar_grafo(self.graph)
 
@@ -64,10 +65,12 @@ class Application:
         no_origem = self.origem.get()
         no_destino = self.destino.get()
         # try:
-        self.graph, self.edge_labels = gerar_menor_caminho(self.graph,
-                                                           self.edge_labels,
-                                                           no_origem,
-                                                           no_destino)
+        self.graph, self.edge_labels, \
+            self.restante_graph, self.restante_labels = \
+            gerar_menor_caminho(self.graph,
+                                self.edge_labels,
+                                no_origem,
+                                no_destino)
         self.gerar_grafo(self.graph)
         self.mensagem["text"] = "Caminho gerado !"
         # except:
@@ -84,19 +87,19 @@ class Application:
 
         nx.draw_networkx_nodes(G, graph_pos, node_size=1000, node_color='blue',
                                alpha=0.3)
-        nx.draw_networkx_edges(G, graph_pos, width=2, alpha=0.3,
-                               edge_color='Grey')
+        nx.draw_networkx_edges(G, graph_pos, edgelist=self.edge_labels, width=2, alpha=0.3,
+                               edge_color='Red')
+        if self.restante_labels is not None:
+            nx.draw_networkx_edges(G, graph_pos, edgelist=self.restante_labels, width=2, alpha=0.3,
+                                   edge_color='Grey')
         nx.draw_networkx_labels(G, graph_pos, font_size=12,
                                 font_family='sans-serif')
 
-        labels = range(len(graph))
-
-        try:
+        nx.draw_networkx_edge_labels(G, graph_pos,
+                                     edge_labels=self.edge_labels)
+        if self.restante_labels is not None:
             nx.draw_networkx_edge_labels(G, graph_pos,
-                                         edge_labels=self.edge_labels)
-        except:
-            edge_labels = dict(zip(graph, labels))
-            nx.draw_networkx_edge_labels(G, graph_pos, edge_labels=edge_labels)
+                                         edge_labels=self.restante_labels)
         plt.show()
 
 
