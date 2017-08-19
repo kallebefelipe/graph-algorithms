@@ -2,6 +2,7 @@ from tkinter import *
 import networkx as nx
 import matplotlib.pyplot as plt
 from dijkstra import gerar_menor_caminho
+from grafo_aleatorio import gerar_grafo_aleatorio
 
 
 class Application:
@@ -51,13 +52,15 @@ class Application:
 
         self.mensagem = Label(self.quartoContainer, text="", font=self.fontePadrao)
         self.mensagem.pack()
-        self.graph = [
-            (1, 6), (1, 3), (1, 5), (2, 6), (2, 4),
-            (3, 4), (3, 6), (4, 6), (5, 4), (5, 6)
-        ]
-        self.edge_labels = {(1, 6): 8, (1, 3): 13, (1, 5): 16, (2, 6): 10, (2, 4): 6,
-                            (3, 4): 14, (3, 6): 11, (4, 6): 17, (5, 4): 5, (5, 6): 7}
+        # self.graph = [
+        #     (1, 6), (1, 3), (1, 5), (2, 6), (2, 4),
+        #     (3, 4), (3, 6), (4, 6), (5, 4), (5, 6)
+        # ]
+        # self.edge_labels = {(1, 6): 8, (1, 3): 13, (1, 5): 16, (2, 6): 10, (2, 4): 6,
+        #                     (3, 4): 14, (3, 6): 11, (4, 6): 17, (5, 4): 5, (5, 6): 7}
+        self.graph, self.edge_labels = gerar_grafo_aleatorio()
         self.restante_labels = None
+        self.graph_pos = None
 
         self.gerar_grafo(self.graph)
 
@@ -76,30 +79,32 @@ class Application:
         # except:
         #     self.mensagem["text"] = "Informe enderenços válidos !"
 
+
     def gerar_grafo(self, graph):
         plt.close()
         G = nx.DiGraph()
+        G.add_edges_from(graph, pos=0)
+        # import ipdb; ipdb.set_trace()
+        if self.graph_pos is None:
+            self.graph_pos = nx.spring_layout(G)
 
-        G.add_edges_from(graph)
-
-        graph_pos = nx.spring_layout(G)
-        # graph_pos = nx.spectral_layout(G)
-
-        nx.draw_networkx_nodes(G, graph_pos, node_size=1000, node_color='blue',
+        nx.draw_networkx_nodes(G, self.graph_pos, node_size=1000, node_color='blue',
                                alpha=0.3)
-        nx.draw_networkx_edges(G, graph_pos, edgelist=self.edge_labels, width=2, alpha=0.3,
+        nx.draw_networkx_edges(G, self.graph_pos, edgelist=self.edge_labels, width=2, alpha=0.3,
                                edge_color='Red')
         if self.restante_labels is not None:
-            nx.draw_networkx_edges(G, graph_pos, edgelist=self.restante_labels, width=2, alpha=0.3,
+            nx.draw_networkx_edges(G, self.graph_pos, edgelist=self.restante_labels, width=2, alpha=0.3,
                                    edge_color='Grey')
-        nx.draw_networkx_labels(G, graph_pos, font_size=12,
+        nx.draw_networkx_labels(G, self.graph_pos, font_size=12,
                                 font_family='sans-serif')
 
-        nx.draw_networkx_edge_labels(G, graph_pos,
+        nx.draw_networkx_edge_labels(G, self.graph_pos,
                                      edge_labels=self.edge_labels)
         if self.restante_labels is not None:
-            nx.draw_networkx_edge_labels(G, graph_pos,
+            nx.draw_networkx_edge_labels(G, self.graph_pos,
                                          edge_labels=self.restante_labels)
+
+        pos = nx.get_node_attributes(G, 'pos')
         plt.show()
 
 
