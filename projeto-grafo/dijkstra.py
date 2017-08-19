@@ -103,6 +103,17 @@ def gerar_caminho(path, no_origem, no_destino, labels):
     return caminho, novo_labels
 
 
+def excluir_caminho(grafo_entrada, labels, caminho, novo_labels):
+    for each in novo_labels:
+        del labels[each]
+    for each in caminho:
+        try:
+            grafo_entrada.remove(each)
+        except:
+            grafo_entrada.remove((each[1], each[0]))
+    return grafo_entrada, labels
+
+
 def gerar_menor_caminho(grafo_entrada, labels, no_origem, no_destino):
     graph = Graph()
     lista_nos = []
@@ -118,4 +129,6 @@ def gerar_menor_caminho(grafo_entrada, labels, no_origem, no_destino):
 
     visited, path = dijsktra(graph, int(no_origem))
     caminho, novo_labels = gerar_caminho(path, int(no_origem), int(no_destino), labels)
-    return caminho, novo_labels
+    grafo_entrada, labels = excluir_caminho(grafo_entrada, labels,
+                                            caminho, novo_labels)
+    return grafo_entrada, novo_labels, grafo_entrada, labels
