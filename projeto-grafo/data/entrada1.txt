@@ -1,0 +1,5 @@
+4
+Recife 1 30 3 100 2 110
+JPessoa 3 50
+Maceio 3 20
+Caruaru 2 20

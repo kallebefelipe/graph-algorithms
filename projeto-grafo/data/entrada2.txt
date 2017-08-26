@@ -1,0 +1,7 @@
+6
+Recife 1 30 3 100 2 110
+JPessoa 3 50
+Maceio 3 20
+Caruaru 2 20
+SantaCruz 1 30 3 100 2 110
+Agrestina 3 20 4 30

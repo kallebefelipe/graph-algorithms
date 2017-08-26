@@ -2,11 +2,43 @@ from tkinter import *
 import networkx as nx
 import matplotlib.pyplot as plt
 from dijkstra import gerar_menor_caminho
-from grafo_aleatorio import gerar_grafo_aleatorio
+from matplotlib.figure import Figure
+from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
+
+
+def leitura(filename):
+    with open(filename) as f:
+        data = f.readlines()
+        data = [x.replace('\n', '').lower() for x in data]
+        return data
+
+
+def montar_grafo(data):
+    nomes = []
+    graph = []
+    edge_labels = {}
+
+    for pos in range(1, int(data[0])+1):
+        linha = data[pos]
+        linha = linha.split(' ')
+
+        nomes.append(linha[0])
+
+    for pos in range(1, int(data[0])+1):
+        linha = data[pos]
+        linha = linha.split(' ')
+
+        for count, each in enumerate(linha[1:]):
+            if (count % 2) == 0:
+                graph.append((linha[0], nomes[int(each)]))
+            else:
+                edge_labels[graph[-1]] = int(each)
+    return graph, edge_labels, nomes
 
 
 class Application:
     def __init__(self, master=None):
+        self.master = master
         self.figure = None
         self.fontePadrao = ("Arial", "10")
         self.primeiroContainer = Frame(master)
@@ -27,7 +59,7 @@ class Application:
         self.titulo = Label(self.primeiroContainer, text="GPS")
         self.titulo["font"] = ("Arial", "10", "bold")
         self.titulo.pack()
-        self.origemLabel = Label(self.segundoContainer,text="Origem", font=self.fontePadrao)
+        self.origemLabel = Label(self.segundoContainer, text="Origem", font=self.fontePadrao)
         self.origemLabel.pack(side=LEFT)
 
         self.origem = Entry(self.segundoContainer)
@@ -52,39 +84,38 @@ class Application:
 
         self.mensagem = Label(self.quartoContainer, text="", font=self.fontePadrao)
         self.mensagem.pack()
-        # self.graph = [
-        #     (1, 6), (1, 3), (1, 5), (2, 6), (2, 4),
-        #     (3, 4), (3, 6), (4, 6), (5, 4), (5, 6)
-        # ]
-        # self.edge_labels = {(1, 6): 8, (1, 3): 13, (1, 5): 16, (2, 6): 10, (2, 4): 6,
-        #                     (3, 4): 14, (3, 6): 11, (4, 6): 17, (5, 4): 5, (5, 6): 7}
-        self.graph, self.edge_labels = gerar_grafo_aleatorio()
+
+        data = leitura('data/entrada2.txt')
+        self.graph, self.edge_labels, self.nomes = montar_grafo(data)
         self.restante_labels = None
         self.graph_pos = None
+        self.save_graph, self.save_edge_labels = self.graph, self.edge_labels
+        print(self.save_graph)
+        print(self.save_edge_labels)
 
-        self.gerar_grafo(self.graph)
+        self.gerar_grafo(self.graph, True)
 
     def menor_caminho(self):
         no_origem = self.origem.get()
         no_destino = self.destino.get()
-        # try:
-        self.graph, self.edge_labels, \
-            self.restante_graph, self.restante_labels = \
-            gerar_menor_caminho(self.graph,
-                                self.edge_labels,
-                                no_origem,
-                                no_destino)
-        self.gerar_grafo(self.graph)
-        self.mensagem["text"] = "Caminho gerado !"
-        # except:
-        #     self.mensagem["text"] = "Informe enderenços válidos !"
 
+        if no_origem not in self.nomes or no_destino not in self.nomes:
+            self.mensagem["text"] = "Cidades invalidas !"
+        else:
+            self.graph, self.edge_labels = self.save_graph, self.save_edge_labels
+            self.graph, self.edge_labels, \
+                self.restante_graph, self.restante_labels = \
+                gerar_menor_caminho(self.graph,
+                                    self.edge_labels,
+                                    no_origem,
+                                    no_destino)
+            self.gerar_grafo(self.graph, False)
+            self.mensagem["text"] = "Caminho gerado !"
 
-    def gerar_grafo(self, graph):
-        plt.close()
+    def gerar_grafo(self, graph, first):
+        # plt.close()
         G = nx.DiGraph()
         G.add_edges_from(graph, pos=0)
-        # import ipdb; ipdb.set_trace()
         if self.graph_pos is None:
             self.graph_pos = nx.spring_layout(G)
 
@@ -94,7 +125,7 @@ class Application:
                                edge_color='Red')
         if self.restante_labels is not None:
             nx.draw_networkx_edges(G, self.graph_pos, edgelist=self.restante_labels, width=2, alpha=0.3,
-                                   edge_color='Grey')
+                                   edge_color='Green')
         nx.draw_networkx_labels(G, self.graph_pos, font_size=12,
                                 font_family='sans-serif')
 
@@ -105,7 +136,15 @@ class Application:
                                          edge_labels=self.restante_labels)
 
         pos = nx.get_node_attributes(G, 'pos')
-        plt.show()
+        # plt.show()
+        if first:
+            fig =plt.gcf()
+            self.canvas = FigureCanvasTkAgg(fig,master=self.master)
+            self.canvas.show()
+            self.canvas.get_tk_widget().pack(side='top', fill='both', expand=1)
+            self.primeiroContainer.pack()
+        else:
+            self.master.attributes("-fullscreen", True)
 
 
 root = Tk()

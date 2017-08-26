@@ -16,36 +16,60 @@ class Graph:
         self.distances[(from_node, to_node)] = distance
 
 
-def dijsktra(graph, initial):
-    visited = {initial: 0}
-    path = {}
-    list_path = []
+def remove_min(Q, c):
+    min_Q = None
+    for node in Q:
+        if node in c:
+            if min_Q is None:
+                min_Q = node
+            elif c[node] < c[min_Q]:
+                min_Q = node
+    if min_Q is not None:
+        Q.remove(min_Q)
+        return Q, min_Q
+    else:
+        return None, None
 
-    nodes = set(graph.nodes)
 
-    while nodes:
-        min_node = None
-        for node in nodes:
-            if node in visited:
-                if min_node is None:
-                    min_node = node
-                elif visited[node] < visited[min_node]:
-                    min_node = node
+def decrease_key(Q, y, min_Q, ante):
+    for each in ante:
+        if y == each[0]:
+            ante.remove(each)
+    ante.append((y, min_Q))
+    return ante
 
-        if min_node is None:
+
+def initialize(G, s):
+    c = {s: 0}
+    for each in G.nodes:
+        if each != s:
+            c[each] = float('inf')
+    return c
+
+
+def dijsktra(G, s):
+    c = initialize(G, s)
+
+    ante = []
+
+    Q = set(G.nodes)
+
+    while Q:
+        Q, x = remove_min(Q, c)
+
+        if x is None:
             break
 
-        nodes.remove(min_node)
-        current_weight = visited[min_node]
+        for y in G.edges[x]:
+            p = G.distances[(x, y)]
+            if c[x] + p < c[y]:
+                c[y] = c[x] + p
+                print(ante)
+                ante = decrease_key(Q, y, x, ante)
+                print(ante)
+                print()
 
-        for edge in graph.edges[min_node]:
-            weight = current_weight + graph.distances[(min_node, edge)]
-            if edge not in visited or weight < visited[edge]:
-                visited[edge] = weight
-                path[edge] = min_node
-                list_path.append((edge, min_node))
-
-    return visited, list_path
+    return c, ante
 
 
 def gerar_caminho(path, no_origem, no_destino, labels):
@@ -119,16 +143,16 @@ def gerar_menor_caminho(grafo_entrada, labels, no_origem, no_destino):
     lista_nos = []
     for x, y in grafo_entrada:
         if x not in lista_nos:
-            lista_nos.append(int(x))
-            graph.add_node(int(x))
+            lista_nos.append(x)
+            graph.add_node(x)
         if y not in lista_nos:
-            lista_nos.append(int(y))
-            graph.add_node(int(y))
+            lista_nos.append(y)
+            graph.add_node(y)
         graph.add_edge(x, y, labels[(x, y)])
         graph.add_edge(y, x, labels[(x, y)])
 
-    visited, path = dijsktra(graph, int(no_origem))
-    caminho, novo_labels = gerar_caminho(path, int(no_origem), int(no_destino), labels)
+    visited, path = dijsktra(graph, no_origem)
+    caminho, novo_labels = gerar_caminho(path, no_origem, no_destino, labels)
     grafo_entrada, labels = excluir_caminho(grafo_entrada, labels,
                                             caminho, novo_labels)
     return grafo_entrada, novo_labels, grafo_entrada, labels
